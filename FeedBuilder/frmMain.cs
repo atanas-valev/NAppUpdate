@@ -281,6 +281,7 @@ namespace FeedBuilder
 					// generate FileUpdateTask metadata items
 					task.SetAttribute("lastModified", fileInfoEx.FileInfo.LastWriteTime.ToFileTime().ToString(CultureInfo.InvariantCulture));
 					task.SetAttribute("fileSize", fileInfoEx.FileInfo.Length.ToString(CultureInfo.InvariantCulture));
+					task.SetAttribute("sha256-checksum", fileInfoEx.Hash);
 					if (!string.IsNullOrEmpty(fileInfoEx.FileVersion)) task.SetAttribute("version", fileInfoEx.FileVersion);
 
 					XmlElement conds = doc.CreateElement("Conditions");
