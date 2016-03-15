@@ -42,8 +42,16 @@ namespace NAppUpdate.Framework.Utils
 		public static Process LaunchProcessAndSendDto(NauDto dto, ProcessStartInfo processStartInfo, string syncProcessName)
 		{
 			Process p;
+			BinaryFormatter formatter = new BinaryFormatter();
+			var size = 0;
+			using (var ms = new MemoryStream())
+			{
+				formatter.Serialize(ms, dto);
+				size = (int)ms.Length;
+			}
+			UpdateManager.Instance.Logger.Log("Buffer size is: " + size);
 
-			using (NamedPipeServerStream pipe = new NamedPipeServerStream(syncProcessName, PipeDirection.Out, 1, PipeTransmissionMode.Message, PipeOptions.Asynchronous))
+			using (NamedPipeServerStream pipe = new NamedPipeServerStream(syncProcessName, PipeDirection.Out, 1, PipeTransmissionMode.Message, PipeOptions.Asynchronous, size + 1024, size + 1024))
 			{
 				p = Process.Start(processStartInfo);
 
@@ -57,8 +65,6 @@ namespace NAppUpdate.Framework.Utils
 				if (asyncResult.AsyncWaitHandle.WaitOne(PIPE_TIMEOUT))
 				{
 					pipe.EndWaitForConnection(asyncResult);
-
-					BinaryFormatter formatter = new BinaryFormatter();
 					formatter.Serialize(pipe, dto);
 				}
 				else if (p.HasExited)
