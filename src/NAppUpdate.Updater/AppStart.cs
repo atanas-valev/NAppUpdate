@@ -14,6 +14,8 @@ namespace NAppUpdate.Updater
 {
 	internal static class AppStart
 	{
+		private const int RETRY_DELAY_MS = 1000;
+
 		private static ArgumentsParser _args;
 		private static Logger _logger;
 		private static ConsoleForm _console;
@@ -21,6 +23,7 @@ namespace NAppUpdate.Updater
 		private static string _logFilePath = string.Empty;
 		private static string _workingDir = string.Empty;
 		private static bool _appRunning = true;
+		private static int _retriesLeft = 2;
 
 		private static void Main()
 		{
@@ -154,6 +157,7 @@ namespace NAppUpdate.Updater
 
 			Log("Got {0} task objects", _dto.Tasks.Count);
 
+			bool success = true;
 			// Perform the actual off-line update process
 			foreach (var t in _dto.Tasks)
 			{
@@ -178,19 +182,61 @@ namespace NAppUpdate.Updater
 					exception = ex;
 				}
 
+				while (t.ExecutionStatus != TaskExecutionStatus.Successful && _retriesLeft > 0)
+				{
+					--_retriesLeft;
+					Thread.Sleep(RETRY_DELAY_MS);
+					try
+					{
+						Log("\tRetrying...");
+						t.ExecutionStatus = t.Execute(true);
+					}
+					catch (Exception ex)
+					{
+						t.ExecutionStatus = TaskExecutionStatus.Failed;
+						exception = ex;
+					}
+				}
+
 				if (t.ExecutionStatus != TaskExecutionStatus.Successful)
 				{
 					string taskFailedMessage = string.Format("Update failed, task execution failed, description: {0}, execution status: {1}", t.Description, t.ExecutionStatus);
-					throw new Exception(taskFailedMessage, exception);
+					Log(Logger.SeverityLevel.Error, taskFailedMessage);
+					Log(exception);
+					success = false;
+					break;
 				}
 			}
 
-			Log("Finished successfully");
-			Log("Removing backup folder");
-
-			if (Directory.Exists(_dto.Configs.BackupFolder))
+			if (success)
 			{
-				FileSystem.DeleteDirectory(_dto.Configs.BackupFolder);
+				Log("Finished successfully");
+				Log("Removing backup folder");
+
+				if (Directory.Exists(_dto.Configs.BackupFolder))
+				{
+					FileSystem.DeleteDirectory(_dto.Configs.BackupFolder);
+				}
+			}
+			else
+			{
+				Log("Rolling back all successful and failed updates.");
+				foreach (var t in _dto.Tasks)
+				{
+					if (t.ExecutionStatus == TaskExecutionStatus.Successful || t.ExecutionStatus == TaskExecutionStatus.Failed)
+					{
+						try
+						{
+							t.Rollback();
+						}
+						catch (Exception e)
+						{
+							// Do nothing for now. 
+							// TODO: Maybe retry or something.
+							Log(e);
+						}
+					}
+				}
 			}
 
 			// Start the application only if requested to do so
@@ -215,7 +261,8 @@ namespace NAppUpdate.Updater
 				}
 				catch (Exception ex)
 				{
-					throw new UpdateProcessFailedException("Unable to relaunch application and/or send DTO", ex);
+					Log(Logger.SeverityLevel.Error, "Unable to relaunch application and/or send DTO");
+					Log(ex);
 				}
 			}
 		}
