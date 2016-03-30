@@ -149,6 +149,7 @@
   -->
   <PropertyGroup>
     <PostBuildEvent>mkdir "$(SolutionDir)src\NAppUpdate.Framework\Updater"
-copy /y "$(TargetDir)NAppUpdate.Updater.exe" "$(SolutionDir)src\NAppUpdate.Framework\Updater\Updater.exe"</PostBuildEvent>
+copy /y "$(TargetDir)NAppUpdate.Updater.exe" "$(SolutionDir)src\NAppUpdate.Framework\Updater\updater.exe"
+copy /y "$(TargetDir)NAppUpdate.Updater.exe.config" "$(SolutionDir)src\NAppUpdate.Framework\Updater\updater.exe.config"</PostBuildEvent>
   </PropertyGroup>
 </Project>

@@ -117,6 +117,10 @@ namespace NAppUpdate.Framework.Utils
 			using (var writer = new BinaryWriter(File.Open(Path.Combine(updaterPath, hostExeName), FileMode.Create)))
 				writer.Write(Resources.updater);
 
+			//store the updater.exe.config file with the .exe so .NET 4.0 users can execute updater without .NET 3.5
+			using (var writer = new BinaryWriter(File.Open(Path.Combine(updaterPath, hostExeName + ".config"), FileMode.Create)))
+				writer.Write(Resources.updater_exe);
+
 			// Now copy the NAU DLL
 			var assemblyLocation = typeof(NauIpc).Assembly.Location;
 			File.Copy(assemblyLocation, Path.Combine(updaterPath, "NAppUpdate.Framework.dll"), true);

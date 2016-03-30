@@ -115,6 +115,7 @@
     </EmbeddedResource>
     <None Include="NAppUpdate.snk" />
     <None Include="Updater\updater.exe" />
+    <None Include="Updater\updater.exe.config" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
@@ -139,7 +140,8 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>if not exist "$(SolutionDir)src\NAppUpdate.Framework\Updater" (mkdir "$(SolutionDir)src\NAppUpdate.Framework\Updater")
-if not exist "$(SolutionDir)src\NAppUpdate.Framework\Updater\updater.exe" (echo This is a dummy file &gt; "$(SolutionDir)src\NAppUpdate.Framework\Updater\updater.exe")</PreBuildEvent>
+if not exist "$(SolutionDir)src\NAppUpdate.Framework\Updater\updater.exe" (echo This is a dummy file &gt; "$(SolutionDir)src\NAppUpdate.Framework\Updater\updater.exe")
+if not exist "$(SolutionDir)src\NAppUpdate.Framework\Updater\updater.exe.config" (echo This is a dummy file &gt; "$(SolutionDir)src\NAppUpdate.Framework\Updater\updater.exe.config")</PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
